@@ -40,7 +40,301 @@ router.post("/generate", (req, res) => {
     res.json({ success: false, message: "Please enter text" });
   }
 });
+router.post("/generate/vcard", (req, res) => {
+  var {
+    margin,
+    scale,
+    small,
+    width,
+    dark,
+    light,
+    fn,
+    ln,
+    email,
+    phone,
+    url,
+    company,
+    companyPos,
+    country,
+    city,
+    street,
+    zip,
+  } = req.body;
+  var vcard =
+    "BEGIN:VCARD\r\n" +
+    "FN:" +
+    fn +
+    " " +
+    ln +
+    "\r\n" +
+    "N:" +
+    ln +
+    ";" +
+    fn +
+    ";;;\r\n" +
+    "EMAIL:" +
+    email +
+    "\r\n" +
+    "ADR;WORK:;;" +
+    company +
+    " " +
+    companyPos +
+    " " +
+    country +
+    " " +
+    city +
+    " " +
+    street +
+    " " +
+    zip +
+    ";;;;\r\n" +
+    "TEL;TYPE=CELL:" +
+    phone +
+    "\r\n" +
+    "\r\n" +
+    "TITLE:" +
+    companyPos +
+    "\r\n" +
+    "\r\n" +
+    "URL:" +
+    url +
+    "\r\n" +
+    "END:VCARD\r\n";
+  var fileName = Date.now();
 
+  QRCode.toFile(
+    `images/${fileName}.png`,
+    vcard,
+    {
+      errorCorrectionLevel: "H",
+      toSJISFunc: toSJIS,
+      margin: margin ? margin : 4,
+      scale: scale ? scale : 4,
+      small: small ? small : false,
+      width: width ? width : 300,
+      quality: 1,
+      color: {
+        dark: dark ? dark : "#000000ff", // Blue dots
+        light: light ? light : "#ffffffff", // Transparent background
+      },
+    },
+    function (err, url) {
+      if (err) res.json({ success: false, message: err });
+      imageToBase64(`images/${fileName}.png`)
+        .then((response) => {
+          res.json({ success: true, message: fileName, base64: response });
+        })
+        .catch((err) => {
+          res.json({ success: false, message: err });
+        });
+    }
+  );
+});
+
+async function create(
+  dataForQRcode,
+  center_image,
+  width,
+  cwidth,
+  margin,
+  scale,
+  small,
+  dark,
+  light
+) {
+  var fileName = Date.now();
+  const canvas = createCanvas(width, width);
+  QRCode.toCanvas(canvas, dataForQRcode, {
+    errorCorrectionLevel: "H",
+    margin: margin ? margin : 4,
+    scale: scale ? scale : 4,
+    small: small ? small : false,
+    color: {
+      dark: dark ? dark : "#000000ff", // Blue dots
+      light: light ? light : "#ffffffff", // Transparent background
+    },
+  });
+
+  const ctx = canvas.getContext("2d");
+  const img = await loadImage(center_image);
+  const center = (width - cwidth) / 2;
+  ctx.drawImage(img, center, center, cwidth, cwidth);
+  const buffer = canvas.toBuffer("image/png");
+  fs.writeFileSync(`images/${fileName}.png`, buffer);
+  var obj = {
+    dataUrl: canvas.toDataURL("image/png"),
+    image: `images/${fileName}.png`,
+  };
+  return obj;
+}
+router.post("/generate/message", (req, res) => {
+  var { margin, scale, small, width, dark, light, message, phone } = req.body;
+  var vcard = `smsto:${phone}:${message}`;
+  var fileName = Date.now();
+
+  QRCode.toFile(
+    `images/${fileName}.png`,
+    vcard,
+    {
+      errorCorrectionLevel: "H",
+      toSJISFunc: toSJIS,
+      margin: margin ? margin : 4,
+      scale: scale ? scale : 4,
+      small: small ? small : false,
+      width: width ? width : 300,
+      quality: 1,
+      color: {
+        dark: dark ? dark : "#000000ff", // Blue dots
+        light: light ? light : "#ffffffff", // Transparent background
+      },
+    },
+    function (err, url) {
+      if (err) res.json({ success: false, message: err });
+      imageToBase64(`images/${fileName}.png`)
+        .then((response) => {
+          res.json({ success: true, message: fileName, base64: response });
+        })
+        .catch((err) => {
+          res.json({ success: false, message: err });
+        });
+    }
+  );
+});
+
+router.post("/generate/email", (req, res) => {
+  var { margin, scale, small, width, dark, light, email, subject, message } =
+    req.body;
+  var vcard = `MATMSG:TO:${email};SUB:${subject};BODY:${message};;`;
+  var fileName = Date.now();
+
+  QRCode.toFile(
+    `images/${fileName}.png`,
+    vcard,
+    {
+      errorCorrectionLevel: "H",
+      toSJISFunc: toSJIS,
+      margin: margin ? margin : 4,
+      scale: scale ? scale : 4,
+      small: small ? small : false,
+      width: width ? width : 300,
+      quality: 1,
+      color: {
+        dark: dark ? dark : "#000000ff", // Blue dots
+        light: light ? light : "#ffffffff", // Transparent background
+      },
+    },
+    function (err, url) {
+      if (err) res.json({ success: false, message: err });
+      imageToBase64(`images/${fileName}.png`)
+        .then((response) => {
+          res.json({ success: true, message: fileName, base64: response });
+        })
+        .catch((err) => {
+          res.json({ success: false, message: err });
+        });
+    }
+  );
+});
+router.post("/generate/phone", (req, res) => {
+  var { margin, scale, small, width, dark, light, phone } = req.body;
+  var vcard = `"TEL:"${phone}`;
+  var fileName = Date.now();
+
+  QRCode.toFile(
+    `images/${fileName}.png`,
+    vcard,
+    {
+      errorCorrectionLevel: "H",
+      toSJISFunc: toSJIS,
+      margin: margin ? margin : 4,
+      scale: scale ? scale : 4,
+      small: small ? small : false,
+      width: width ? width : 300,
+      quality: 1,
+      color: {
+        dark: dark ? dark : "#000000ff", // Blue dots
+        light: light ? light : "#ffffffff", // Transparent background
+      },
+    },
+    function (err, url) {
+      if (err) res.json({ success: false, message: err });
+      imageToBase64(`images/${fileName}.png`)
+        .then((response) => {
+          res.json({ success: true, message: fileName, base64: response });
+        })
+        .catch((err) => {
+          res.json({ success: false, message: err });
+        });
+    }
+  );
+});
+router.post("/generate/link", (req, res) => {
+  var { margin, scale, small, width, dark, light, link } = req.body;
+  var vcard = link;
+  var fileName = Date.now();
+
+  QRCode.toFile(
+    `images/${fileName}.png`,
+    vcard,
+    {
+      errorCorrectionLevel: "H",
+      toSJISFunc: toSJIS,
+      margin: margin ? margin : 4,
+      scale: scale ? scale : 4,
+      small: small ? small : false,
+      width: width ? width : 300,
+      quality: 1,
+      color: {
+        dark: dark ? dark : "#000000ff", // Blue dots
+        light: light ? light : "#ffffffff", // Transparent background
+      },
+    },
+    function (err, url) {
+      if (err) res.json({ success: false, message: err });
+      imageToBase64(`images/${fileName}.png`)
+        .then((response) => {
+          res.json({ success: true, message: fileName, base64: response });
+        })
+        .catch((err) => {
+          res.json({ success: false, message: err });
+        });
+    }
+  );
+});
+router.post("/generate/wifi", (req, res) => {
+  var { margin, scale, small, width, dark, light, value, network, password,hidden } =
+    req.body;
+  var vcard = `WIFI:T:${value};S:${network};${value !== 'nopass' ? `P:${password};` : ''}H:${hidden};`;
+  var fileName = Date.now();
+
+  QRCode.toFile(
+    `images/${fileName}.png`,
+    vcard,
+    {
+      errorCorrectionLevel: "H",
+      toSJISFunc: toSJIS,
+      margin: margin ? margin : 4,
+      scale: scale ? scale : 4,
+      small: small ? small : false,
+      width: width ? width : 300,
+      quality: 1,
+      color: {
+        dark: dark ? dark : "#000000ff", // Blue dots
+        light: light ? light : "#ffffffff", // Transparent background
+      },
+    },
+    function (err, url) {
+      if (err) res.json({ success: false, message: err });
+      imageToBase64(`images/${fileName}.png`)
+        .then((response) => {
+          res.json({ success: true, message: fileName, base64: response });
+        })
+        .catch((err) => {
+          res.json({ success: false, message: err });
+        });
+    }
+  );
+});
 async function create(
   dataForQRcode,
   center_image,

@@ -1,16 +1,8 @@
-POST http://localhost:9047/v1/generate
+POST http://localhost:9047/v1/barcode
 content-type: application/json
 
 {
-    "dark":"#ffffff",
-    "light":"#000000"
-}
-###
-POST http://localhost:9047/v1/generate/logo
-content-type: application/json
-{
-    "url":"https://www.apithon.com.tr",
-    "dark":"#DD3333",
-    "light":"#030000",
-    "center_image":"dd"
+    "veri":"123456",
+    "type":"CODE128",
+    "text":"asdasdasd"
 }
